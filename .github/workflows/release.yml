@@ -1,0 +1,65 @@
+name: Auto Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+        with:
+          submodules: false
+          fetch-depth: 0
+
+      - name: Checkout submodules
+        run: git submodule update --init --recursive --depth 1
+
+      - name: Setup Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v4
+
+      - name: Install NDK
+        run: yes | sdkmanager "ndk;29.0.14206865"
+
+      - name: Install CMake
+        run: |
+          CMAKE_VERSION=4.3.2
+          wget -q https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION}/cmake-${CMAKE_VERSION}-linux-x86_64.tar.gz
+          tar -xzf cmake-${CMAKE_VERSION}-linux-x86_64.tar.gz
+          echo "cmake.dir=$PWD/cmake-${CMAKE_VERSION}-linux-x86_64" >> local.properties
+          echo "$PWD/cmake-${CMAKE_VERSION}-linux-x86_64/bin" >> "$GITHUB_PATH"
+
+      - name: Restore release signing files
+        env:
+          KLYX_KEYSTORE: ${{ secrets.KLYX_KEYSTORE }}
+          KEYSTORE_PROP: ${{ secrets.KEYSTORE_PROP }}
+        run: |
+          test -n "$KLYX_KEYSTORE" || { echo "KLYX_KEYSTORE is not configured"; exit 1; }
+          test -n "$KEYSTORE_PROP" || { echo "KEYSTORE_PROP is not configured"; exit 1; }
+          echo "$KLYX_KEYSTORE" | base64 -d > /tmp/klyx.keystore
+          echo "$KEYSTORE_PROP" | base64 -d > /tmp/sign.properties
+
+      - name: Give permission to executable
+        run: chmod +x gradlew
+
+      - name: Prepare TreeSitter bindings
+        run: ./gradlew prepareTreeSitter
+
+      - name: Build Release APK
+        run: ./gradlew assembleRelease
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: app/build/outputs/apk/**/*arm64-v8a*.apk
+          generate_release_notes: true

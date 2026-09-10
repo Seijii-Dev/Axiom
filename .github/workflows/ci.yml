@@ -47,8 +47,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v7
         with:
-          submodules: 'true'
+          submodules: false
           fetch-depth: 0
+
+      - name: Checkout submodules
+        run: git submodule update --init --recursive --depth 1
 
       - name: Setup Java
         uses: actions/setup-java@v5

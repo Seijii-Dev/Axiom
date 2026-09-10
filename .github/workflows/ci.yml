@@ -28,9 +28,14 @@ env:
 
 jobs:
   build-android:
-    name: Build Android APK
+    name: Build APKs
     runs-on: ubuntu-latest
     steps:
+      - name: Cancel previous runs
+        uses: styfle/cancel-workflow-action@0.12.1
+        with:
+          access_token: ${{ github.token }}
+
       - name: Free disk space
         run: |
           sudo rm -rf /usr/share/dotnet
@@ -39,14 +44,11 @@ jobs:
           docker system prune -af || true
           df -h
 
-      - name: Checkout
+      - name: Checkout code
         uses: actions/checkout@v7
         with:
-          submodules: false
+          submodules: 'true'
           fetch-depth: 0
-
-      - name: Checkout submodules
-        run: git submodule update --init --recursive --depth 1
 
       - name: Setup Java
         uses: actions/setup-java@v5

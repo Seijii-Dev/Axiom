@@ -39,16 +39,6 @@ jobs:
           echo "cmake.dir=$PWD/cmake-${CMAKE_VERSION}-linux-x86_64" >> local.properties
           echo "$PWD/cmake-${CMAKE_VERSION}-linux-x86_64/bin" >> "$GITHUB_PATH"
 
-      - name: Restore release signing files
-        env:
-          KLYX_KEYSTORE: ${{ secrets.KLYX_KEYSTORE }}
-          KEYSTORE_PROP: ${{ secrets.KEYSTORE_PROP }}
-        run: |
-          test -n "$KLYX_KEYSTORE" || { echo "KLYX_KEYSTORE is not configured"; exit 1; }
-          test -n "$KEYSTORE_PROP" || { echo "KEYSTORE_PROP is not configured"; exit 1; }
-          echo "$KLYX_KEYSTORE" | base64 -d > /tmp/klyx.keystore
-          echo "$KEYSTORE_PROP" | base64 -d > /tmp/sign.properties
-
       - name: Give permission to executable
         run: chmod +x gradlew
 

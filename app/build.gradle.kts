@@ -1,5 +1,3 @@
-import java.util.Properties
-
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
@@ -43,31 +41,10 @@ android {
 
     signingConfigs {
         create("release") {
-            val isCI = System.getenv("GITHUB_ACTIONS")?.toBoolean() ?: false
-
-            val propPath = if (isCI) {
-                "/tmp/sign.properties"
-            } else {
-                "${System.getenv("HOME")}/klyx/key/sign.properties"
-            }
-
-            val propFile = File(propPath)
-            if (propFile.exists()) {
-                val properties = Properties().also {
-                    it.load(propFile.inputStream())
-                }
-
-                keyAlias = properties.getProperty("keyAlias")
-                keyPassword = properties.getProperty("keyPassword")
-                storeFile = if (isCI) {
-                    File("/tmp/klyx.keystore")
-                } else {
-                    File(properties.getProperty("storeFile"))
-                }
-                storePassword = properties.getProperty("storePassword")
-            } else {
-                println("Sign properties file not found at $propPath")
-            }
+            storeFile = file("test.keystore")
+            keyAlias = "test"
+            keyPassword = "teixeira0x"
+            storePassword = "teixeira0x"
         }
     }
 

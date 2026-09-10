@@ -27,7 +27,7 @@ val generateI18nStrings = tasks.register<GenerateI18nStringsTask>("generateI18nS
 }
 
 android {
-    namespace = "com.klyx.i18n.strings"
+    namespace = "com.axiom.i18n.strings"
 
     compileSdk {
         version = release(37)
@@ -66,7 +66,7 @@ androidComponents {
 }
 
 ksp {
-    arg("klyx.i18n.generateStringsProperty", "true")
+    arg("axiom.i18n.generateStringsProperty", "true")
 }
 
 // The KSP task does not consume AGP variant generated source directories on its
@@ -158,9 +158,9 @@ abstract class GenerateI18nStringsTask : DefaultTask() {
 
         val output = buildString {
             appendLine("// Generated from translations/*.json by the generateI18nStrings task. DO NOT EDIT.")
-            appendLine("package com.klyx.i18n.strings")
+            appendLine("package com.axiom.i18n.strings")
             appendLine()
-            appendLine("import com.klyx.i18n.I18nStrings")
+            appendLine("import com.axiom.i18n.I18nStrings")
             appendLine()
             appendLine("// Untranslated strings fall back to the default language ($defaultTag).")
             appendLine("interface Strings {")
@@ -187,7 +187,7 @@ abstract class GenerateI18nStringsTask : DefaultTask() {
         }
 
         outputDir.get().asFile
-            .resolve("com/klyx/i18n/strings")
+            .resolve("com/axiom/i18n/strings")
             .apply { mkdirs() }
             .resolve("Translations.kt")
             .writeText(output)

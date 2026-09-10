@@ -34,7 +34,7 @@ tasks.register("prepareTreeSitter") {
 }
 
 allprojects {
-    group = "io.github.klyx-dev"
+    group = "io.github.axiom-dev"
     version = property("project.version") as String
 }
 
@@ -42,7 +42,7 @@ subprojects {
     pluginManager.withPlugin("com.vanniktech.maven.publish.base") {
         configure<MavenPublishBaseExtension> {
             coordinates(
-                groupId = "io.github.klyx-dev",
+                groupId = "io.github.axiom-dev",
                 artifactId = project.path.removePrefix(":").replace(":", "-"),
                 version = property("project.version") as String
             )
@@ -105,7 +105,7 @@ subprojects {
             baseDir = projectDir
             grammarName = langName
             className = "TreeSitter$capitalizedName"
-            packageName = "com.klyx.languages.$langName"
+            packageName = "com.axiom.languages.$langName"
         }
 
         val generateTask = tasks.named<GrammarFilesTask>("generateGrammarFiles")
@@ -209,7 +209,7 @@ subprojects {
         }
 
         configure<LibraryExtension> {
-            namespace = "com.klyx.languages.$langName"
+            namespace = "com.axiom.languages.$langName"
             ndkVersion = property("ndk.version") as String
 
             compileSdk {

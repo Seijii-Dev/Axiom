@@ -1,1 +1,1 @@
--keep class com.klyx.terminal.native.Native { *; }
+-keep class com.axiom.terminal.native.Native { *; }

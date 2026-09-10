@@ -2,7 +2,7 @@
 
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
-rootProject.name = "Klyx"
+rootProject.name = "Axiom"
 
 pluginManagement {
     repositories {
@@ -37,8 +37,8 @@ dependencyResolutionManagement {
 
 includeBuild("external/sora-editor")
 
-include(":app", ":terminal", ":editor", ":core", ":klyx-api")
-include(":klyx-gradle-plugin", ":klyx-compiler-plugin")
+include(":app", ":terminal", ":editor", ":core", ":axiom-api")
+include(":axiom-gradle-plugin", ":axiom-compiler-plugin")
 include(":lsp:api", ":lsp:server")
 include(":i18n:processor", ":i18n:runtime", ":i18n:strings")
 

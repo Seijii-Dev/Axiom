@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "com.klyx.core"
+    namespace = "com.axiom.core"
 
     compileSdk {
         version = release(37)

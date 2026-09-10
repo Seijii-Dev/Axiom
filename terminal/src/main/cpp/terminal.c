@@ -169,7 +169,7 @@ static int throw_runtime_exception(JNIEnv *env, char const *message) {
 }
 
 JNIEXPORT jint JNICALL
-Java_com_klyx_terminal_native_Native_createSubprocess(JNIEnv *env, jclass clazz, jstring cmd, jstring cwd, jobjectArray args, jobjectArray env_vars, jintArray process_id_array, jint rows, jint columns, jint cell_width, jint cell_height) {
+Java_com_axiom_terminal_native_Native_createSubprocess(JNIEnv *env, jclass clazz, jstring cmd, jstring cwd, jobjectArray args, jobjectArray env_vars, jintArray process_id_array, jint rows, jint columns, jint cell_width, jint cell_height) {
     jsize size = args ? (*env)->GetArrayLength(env, args) : 0;
     char **argv = NULL;
     if (size > 0) {
@@ -243,7 +243,7 @@ native_setPtyUTF8Mode(jint fd) {
 }
 
 JNIEXPORT jint JNICALL
-Java_com_klyx_terminal_native_Native_waitFor(JNIEnv *env, jclass clazz, jint pid) {
+Java_com_axiom_terminal_native_Native_waitFor(JNIEnv *env, jclass clazz, jint pid) {
     return term_wait_for(pid);
 }
 
@@ -253,7 +253,7 @@ native_close(jint fd) {
 }
 
 JNIEXPORT jint JNICALL
-Java_com_klyx_terminal_native_Native_readFromFd(JNIEnv *env, jclass clazz, jint fd, jbyteArray buffer, jint max_len) {
+Java_com_axiom_terminal_native_Native_readFromFd(JNIEnv *env, jclass clazz, jint fd, jbyteArray buffer, jint max_len) {
     jbyte *buf_ptr = (*env)->GetByteArrayElements(env, buffer, NULL);
     if (!buf_ptr) return -1;
 
@@ -264,7 +264,7 @@ Java_com_klyx_terminal_native_Native_readFromFd(JNIEnv *env, jclass clazz, jint 
 }
 
 JNIEXPORT jint JNICALL
-Java_com_klyx_terminal_native_Native_writeToFd(JNIEnv *env, jclass clazz, jint fd, jbyteArray buffer, jint len) {
+Java_com_axiom_terminal_native_Native_writeToFd(JNIEnv *env, jclass clazz, jint fd, jbyteArray buffer, jint len) {
     jbyte *buf_ptr = (*env)->GetByteArrayElements(env, buffer, NULL);
     if (!buf_ptr) return -1;
 
@@ -275,7 +275,7 @@ Java_com_klyx_terminal_native_Native_writeToFd(JNIEnv *env, jclass clazz, jint f
 }
 
 JNIEXPORT jstring JNICALL
-Java_com_klyx_terminal_native_Native_readSymlink(JNIEnv *env, jclass clazz, jstring path) {
+Java_com_axiom_terminal_native_Native_readSymlink(JNIEnv *env, jclass clazz, jstring path) {
     const char *path_utf8 = (*env)->GetStringUTFChars(env, path, NULL);
     char buffer[PATH_MAX];
 
@@ -287,7 +287,7 @@ Java_com_klyx_terminal_native_Native_readSymlink(JNIEnv *env, jclass clazz, jstr
 }
 
 JNIEXPORT jint JNICALL
-Java_com_klyx_terminal_native_Native_killProcess(JNIEnv *env, jclass clazz, jint pid, jint signal) {
+Java_com_axiom_terminal_native_Native_killProcess(JNIEnv *env, jclass clazz, jint pid, jint signal) {
     return term_kill_process(pid, signal);
 }
 
@@ -303,7 +303,7 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved) {
         return JNI_ERR;
     }
 
-    jclass clazz = (*env)->FindClass(env, "com/klyx/terminal/native/Native");
+    jclass clazz = (*env)->FindClass(env, "com/axiom/terminal/native/Native");
     if (!clazz) return JNI_ERR;
 
     int rc = (*env)->RegisterNatives(env, clazz, gCriticalMethods, sizeof(gCriticalMethods) / sizeof(gCriticalMethods[0]));

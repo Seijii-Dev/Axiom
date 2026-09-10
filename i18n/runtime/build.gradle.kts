@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "com.klyx.i18n"
+    namespace = "com.axiom.i18n"
 
     compileSdk {
         version = release(37)

@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.klyx.editor"
+    namespace = "com.axiom.editor"
 
     compileSdk {
         version = release(37)
@@ -79,7 +79,7 @@ abstract class GenerateTreeSitterTask : DefaultTask() {
     fun execute() {
         val baseOutputDir = outputDir.get().asFile
 
-        val editorFolder = baseOutputDir.resolve("com/klyx/editor")
+        val editorFolder = baseOutputDir.resolve("com/axiom/editor")
         editorFolder.mkdirs()
 
         val outputFileTreeSitter = File(editorFolder, "TreeSitter.kt")
@@ -113,7 +113,7 @@ abstract class GenerateTreeSitterTask : DefaultTask() {
                 if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString()
             }
             val className = "TreeSitter$capName"
-            val packageName = "com.klyx.languages.$lang"
+            val packageName = "com.axiom.languages.$lang"
             val extensions = extMap[lang] ?: listOf(lang)
 
             targetInfos[lang] = TargetInfo(className, packageName, extensions)
@@ -152,16 +152,16 @@ abstract class GenerateTreeSitterTask : DefaultTask() {
 
         outputFileTreeSitter.writeText(
             """
-            |package com.klyx.editor
+            |package com.axiom.editor
             |
             |import android.content.Context
-            |import com.klyx.editor.treesitter.DynamicLanguageProvider
-            |import com.klyx.editor.treesitter.EditorLanguage
-            |import com.klyx.editor.treesitter.LanguageEntry
-            |import com.klyx.editor.treesitter.LanguagePriority
-            |import com.klyx.editor.treesitter.LanguageQueries
-            |import com.klyx.editor.treesitter.QuerySources
-            |import com.klyx.editor.treesitter.editorTheme
+            |import com.axiom.editor.treesitter.DynamicLanguageProvider
+            |import com.axiom.editor.treesitter.EditorLanguage
+            |import com.axiom.editor.treesitter.LanguageEntry
+            |import com.axiom.editor.treesitter.LanguagePriority
+            |import com.axiom.editor.treesitter.LanguageQueries
+            |import com.axiom.editor.treesitter.QuerySources
+            |import com.axiom.editor.treesitter.editorTheme
             |import io.github.rosemoe.sora.lang.Language
             |import io.github.rosemoe.sora.lang.EmptyLanguage
             |import java.util.concurrent.ConcurrentHashMap
@@ -242,13 +242,13 @@ abstract class GenerateTreeSitterTask : DefaultTask() {
 
         outputFileRegistry.writeText(
             """
-            |package com.klyx.editor
+            |package com.axiom.editor
             |
             |import android.content.Context
-            |import com.klyx.editor.treesitter.DynamicLanguageProvider
-            |import com.klyx.editor.treesitter.LanguagePriority
-            |import com.klyx.editor.treesitter.LanguageQueries
-            |import com.klyx.editor.treesitter.QuerySources
+            |import com.axiom.editor.treesitter.DynamicLanguageProvider
+            |import com.axiom.editor.treesitter.LanguagePriority
+            |import com.axiom.editor.treesitter.LanguageQueries
+            |import com.axiom.editor.treesitter.QuerySources
             |import io.github.treesitter.ktreesitter.Language
             |
             |$registryImports

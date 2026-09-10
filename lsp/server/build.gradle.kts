@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "com.klyx.lsp.server"
+    namespace = "com.axiom.lsp.server"
 
     compileSdk {
         version = release(37)

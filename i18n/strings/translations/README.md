@@ -1,4 +1,4 @@
-# Translating Klyx
+# Translating Axiom
 
 Every language lives in a single plain-text JSON file in this folder:
 

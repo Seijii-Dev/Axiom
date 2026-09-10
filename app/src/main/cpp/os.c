@@ -4,13 +4,13 @@
 #include <sys/types.h>
 
 JNIEXPORT jobject JNICALL
-Java_com_klyx_native_Os_getpwuid(JNIEnv *env, jclass clazz, jint uid) {
+Java_com_axiom_native_Os_getpwuid(JNIEnv *env, jclass clazz, jint uid) {
     struct passwd *pw = getpwuid((uid_t) uid);
     if (pw == NULL) {
         return NULL;
     }
 
-    jclass pwClass = (*env)->FindClass(env, "com/klyx/native/Passwd");
+    jclass pwClass = (*env)->FindClass(env, "com/axiom/native/Passwd");
     if (pwClass == NULL) {
         return NULL;
     }
@@ -33,13 +33,13 @@ Java_com_klyx_native_Os_getpwuid(JNIEnv *env, jclass clazz, jint uid) {
 }
 
 JNIEXPORT jobject JNICALL
-Java_com_klyx_native_Os_getgrgid(JNIEnv *env, jclass clazz, jint gid) {
+Java_com_axiom_native_Os_getgrgid(JNIEnv *env, jclass clazz, jint gid) {
     struct group *gr = getgrgid((gid_t) gid);
     if (gr == NULL) {
         return NULL;
     }
 
-    jclass groupClass = (*env)->FindClass(env, "com/klyx/native/Group");
+    jclass groupClass = (*env)->FindClass(env, "com/axiom/native/Group");
     if (groupClass == NULL) {
         return NULL;
     }

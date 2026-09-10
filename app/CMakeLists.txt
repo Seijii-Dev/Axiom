@@ -1,16 +1,16 @@
 cmake_minimum_required(VERSION 3.22.1)
 
-project(klyx C ASM)
+project(axiom C ASM)
 
 set(CPP_DIR src/main/cpp)
 set(PROOT_DIR ${CPP_DIR}/proot/src)
 set(TALLOC_DIR ${CPP_DIR}/talloc-minimal)
 
-add_library(klyx SHARED
+add_library(axiom SHARED
         ${CPP_DIR}/os.c
 )
 
-target_link_libraries(klyx
+target_link_libraries(axiom
         android
         log
 )

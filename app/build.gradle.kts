@@ -8,7 +8,7 @@ plugins {
 }
 
 android {
-    namespace = "com.klyx"
+    namespace = "com.axiom"
     ndkVersion = property("ndk.version") as String
 
     compileSdk {
@@ -16,7 +16,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.klyx"
+        applicationId = "com.axiom"
         minSdk = 28
         targetSdk = 37
         versionCode = (property("project.versionCode") as String).toInt()
@@ -66,7 +66,7 @@ android {
             applicationIdSuffix = ".debug"
             //signingConfig = releaseConfig
             versionNameSuffix = "-debug"
-            resValue("string", "app_name", "Klyx [D]")
+            resValue("string", "app_name", "Axiom [D]")
         }
     }
 
@@ -189,7 +189,7 @@ dependencies {
     implementation(libs.bundles.markdown.renderer)
     implementation(libs.sshd.sftp)
 
-    implementation(projects.klyxApi)
+    implementation(projects.axiomApi)
     implementation(projects.core)
     implementation(projects.terminal)
     implementation(projects.editor)

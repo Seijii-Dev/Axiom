@@ -1,0 +1,176 @@
+package com.axiom.data.terminal
+
+import com.axiom.BuildConfig
+import com.axiom.api.data.terminal.TerminalSessionEntry
+import com.axiom.api.data.terminal.TerminalSessionManager
+import com.axiom.api.data.fs.Paths
+import com.axiom.event.GlobalEventBus
+import com.axiom.api.event.terminal.NewSessionEvent
+import com.axiom.api.event.terminal.SessionTerminateEvent
+import com.axiom.api.event.terminal.TerminateAllSessionEvent
+import com.axiom.terminal.emulator.TerminalSession
+import com.axiom.terminal.emulator.TerminalSessionClient
+import com.axiom.api.terminal.home
+import com.axiom.api.terminal.terminalArgs
+import com.axiom.api.terminal.rootFs
+import com.axiom.api.terminal.terminalEnv
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.PersistentList
+import kotlinx.collections.immutable.mutate
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.plus
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
+import kotlin.uuid.Uuid
+
+class DefaultTerminalSessionManager : TerminalSessionManager {
+
+    private val lock = Mutex()
+
+    private val _sessions = MutableStateFlow<PersistentList<TerminalSessionEntry>>(persistentListOf())
+    override val sessions: StateFlow<ImmutableList<TerminalSessionEntry>> = _sessions.asStateFlow()
+
+    private val _currentSessionId = MutableStateFlow<Uuid?>(null)
+    override val currentSessionId: StateFlow<Uuid?> = _currentSessionId.asStateFlow()
+
+    private val _currentSession = MutableStateFlow<TerminalSessionEntry?>(null)
+    override val currentSession: StateFlow<TerminalSessionEntry?> = _currentSession.asStateFlow()
+
+    private fun refreshCurrent() {
+        val id = _currentSessionId.value
+        _currentSession.value = _sessions.value.firstOrNull { it.id == id }
+    }
+
+    override suspend fun getOrCreateSession(
+        id: Uuid,
+        client: TerminalSessionClient,
+        transcriptRows: Int
+    ): TerminalSession {
+        val existing = lock.withLock { _sessions.value.firstOrNull { it.id == id }?.session }
+        if (existing != null && existing.isRunning.value) return existing
+        return newSession(client, id, transcriptRows)
+    }
+
+    override suspend fun currentSessionOrNewSession(
+        client: TerminalSessionClient,
+        transcriptRows: Int
+    ): TerminalSession {
+        val id = _currentSessionId.value ?: Uuid.generateV7()
+        return getOrCreateSession(id, client, transcriptRows)
+    }
+
+    override fun switchTo(id: Uuid) {
+        if (_sessions.value.any { it.id == id }) {
+            _currentSessionId.value = id
+            refreshCurrent()
+        }
+    }
+
+    override suspend fun newSession(
+        client: TerminalSessionClient,
+        id: Uuid,
+        transcriptRows: Int,
+        showMotd: Boolean
+    ): TerminalSession = newSessionInternal(
+        id = id,
+        client = client,
+        args = terminalArgs(showMotd),
+        transcriptRows = transcriptRows
+    )
+
+    override suspend fun newCommandSession(
+        command: String,
+        client: TerminalSessionClient,
+        transcriptRows: Int
+    ): TerminalSession = newSessionInternal(
+        id = Uuid.generateV7(),
+        client = client,
+        args = terminalArgs(command = command),
+        transcriptRows = transcriptRows
+    )
+
+    private suspend fun newSessionInternal(
+        id: Uuid,
+        client: TerminalSessionClient,
+        args: List<String>,
+        transcriptRows: Int
+    ): TerminalSession = withContext(Dispatchers.IO) {
+        val linker = "/system/bin/linker64"
+
+        val env = terminalEnv().map { "${it.key}=${it.value}" }.toMutableList()
+        val certPath = Paths.rootFs.resolve("etc/tls/cert.pem")
+        if (certPath.exists()) {
+            env += "SSL_CERT_FILE=${certPath.absolutePath}"
+            env += "CURL_CA_BUNDLE=${certPath.absolutePath}"
+        }
+
+        if (BuildConfig.DEBUG) {
+            env += "AXIOM_DEBUG=true"
+            env += "DEBUG=true"
+        }
+
+        TerminalSession(
+            shellPath = linker,
+            cwd = Paths.home.absolutePath,
+            args = listOf(linker) + args,
+            env = env,
+            client = client,
+            transcriptRows = transcriptRows
+        ).also { session ->
+            GlobalEventBus.publish(NewSessionEvent(id, session))
+            lock.withLock {
+                _sessions.update { it + TerminalSessionEntry(id, session) }
+                _currentSessionId.value = id
+                refreshCurrent()
+            }
+        }
+    }
+
+    override suspend fun terminate(id: Uuid) {
+        val removed = lock.withLock {
+            val entry = _sessions.value.firstOrNull { it.id == id } ?: return@withLock null
+            _sessions.update { list -> list.mutate { mutable -> mutable.removeAll { it.id == id } } }
+            if (_currentSessionId.value == id) {
+                _currentSessionId.value = _sessions.value.firstOrNull()?.id
+            }
+            refreshCurrent()
+            entry
+        }
+        removed?.session?.finishIfRunning()
+        GlobalEventBus.publish(SessionTerminateEvent(id))
+    }
+
+    override suspend fun terminateCurrentSession() {
+        val id = _currentSessionId.value ?: return
+        terminate(id)
+    }
+
+    override suspend fun terminateAll() {
+        val snapshot = lock.withLock {
+            val list = _sessions.value
+            _sessions.value = persistentListOf()
+            _currentSessionId.value = null
+            refreshCurrent()
+            list
+        }
+        snapshot.forEach { it.session.finishIfRunning() }
+        GlobalEventBus.publish(TerminateAllSessionEvent)
+    }
+
+    private fun getSeLinuxContext() = try {
+        val process = Runtime.getRuntime().exec(arrayOf("/system/bin/cat", "/proc/self/attr/current"))
+        process.inputStream.bufferedReader().readLine()?.trim() ?: ""
+    } catch (_: Exception) {
+        ""
+    }
+
+    private companion object {
+        private const val TAG = "TerminalSessionManager"
+    }
+}

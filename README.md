@@ -1,11 +1,11 @@
-# Klyx
+# Axiom
 
-[![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/klyx-dev/klyx/ci.yml?branch=main&style=for-the-badge&logo=android&link=https%3A%2F%2Fgithub.com%2Fklyx-dev%2Fklyx%2Factions%2Fworkflows%2Fci.yml)](https://github.com/klyx-dev/klyx/actions/workflows/ci.yml)
-[![License](https://img.shields.io/github/license/klyx-dev/klyx?style=for-the-badge&link=LICENSE)](LICENSE)
+[![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/Seijii-Dev/Axiom/ci.yml?branch=main&style=for-the-badge&logo=android&link=https%3A%2F%2Fgithub.com%2FSeijii-Dev%2FAxiom%2Factions%2Fworkflows%2Fci.yml)](https://github.com/Seijii-Dev/Axiom/actions/workflows/ci.yml)
+[![License](https://img.shields.io/github/license/Seijii-Dev/Axiom?style=for-the-badge&link=LICENSE)](LICENSE)
 [![Discord](https://img.shields.io/badge/Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white&link=https%3A%2F%2Fdiscord.gg%2FgTHQTPHNaT)](https://discord.gg/gTHQTPHNaT)
-[![Telegram](https://img.shields.io/badge/Telegram-26A5E4?style=for-the-badge&logo=telegram&logoColor=white)](https://t.me/klyx_editor)
+[![Telegram](https://img.shields.io/badge/Telegram-26A5E4?style=for-the-badge&logo=telegram&logoColor=white)](https://t.me/axiom_editor)
 
-Klyx is a modern code editor for Android built with Jetpack Compose and Material 3 Expressive.
+Axiom is a modern code editor for Android built with Jetpack Compose and Material 3 Expressive.
 
 ## Screenshots
 
@@ -17,13 +17,13 @@ Klyx is a modern code editor for Android built with Jetpack Compose and Material
 
 ## Download
 
-Download the latest release from the [Releases](https://github.com/klyx-dev/klyx/releases/latest) page.
+Download the latest release from the [Releases](https://github.com/Seijii-Dev/Axiom/releases/latest) page.
 
 ## Building
 
 ```bash
-git clone --recurse-submodules https://github.com/klyx-dev/klyx.git
-cd klyx
+git clone --recurse-submodules https://github.com/Seijii-Dev/Axiom.git
+cd axiom
 ./gradlew prepareTreeSitter
 ./gradlew assembleDebug
 ```
@@ -36,20 +36,20 @@ cd klyx
 
 ## Status
 
-Klyx is under active development. Features and APIs may change between releases.
+Axiom is under active development. Features and APIs may change between releases.
 
 ## Contributing
 
 Contributions, bug reports, and feature requests are welcome.
 
-* Issues: https://github.com/klyx-dev/klyx/issues
-* Discussions: https://github.com/klyx-dev/klyx/discussions
+* Issues: https://github.com/Seijii-Dev/Axiom/issues
+* Discussions: https://github.com/Seijii-Dev/Axiom/discussions
 
 ## Translations
 
-Help translate Klyx! Visit [Weblate](https://hosted.weblate.org/engage/klyx/) to get started.
+Help translate Axiom! Visit [Weblate](https://hosted.weblate.org/engage/axiom/) to get started.
 
-[![Translation status](https://hosted.weblate.org/widget/klyx/translations/matrix-blue.svg)](https://hosted.weblate.org/engage/klyx/)
+[![Translation status](https://hosted.weblate.org/widget/axiom/translations/matrix-blue.svg)](https://hosted.weblate.org/engage/axiom/)
 
 ## License
 

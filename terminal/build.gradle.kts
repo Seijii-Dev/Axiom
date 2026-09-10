@@ -7,7 +7,7 @@ plugins {
 }
 
 android {
-    namespace = "com.klyx.terminal"
+    namespace = "com.axiom.terminal"
     ndkVersion = property("ndk.version") as String
 
     compileSdk {

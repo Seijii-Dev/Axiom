@@ -52,9 +52,9 @@ for apk in "$APK_DIR"/*.apk; do
     esac
 
     if [ -n "$ABI_LABEL" ]; then
-        OUTPUT_NAME="klyx-${VERSION}-${ABI_LABEL}.apk"
+        OUTPUT_NAME="axiom-${VERSION}-${ABI_LABEL}.apk"
     else
-        OUTPUT_NAME="klyx-${VERSION}.apk"
+        OUTPUT_NAME="axiom-${VERSION}.apk"
     fi
 
     cp "$apk" "$OUTPUT_DIR/$OUTPUT_NAME"
@@ -71,7 +71,7 @@ fi
 
 if [ "$INSTALL" = true ]; then
     VERSION=$(cat "$OUTPUT_DIR/.version" 2>/dev/null || echo "$VERSION")
-    UNIVERSAL="$OUTPUT_DIR/klyx-${VERSION}-universal.apk"
+    UNIVERSAL="$OUTPUT_DIR/axiom-${VERSION}-universal.apk"
     if [ -f "$UNIVERSAL" ]; then
         echo "==> Installing universal APK via adb..."
         adb install -r "$UNIVERSAL"
@@ -82,7 +82,7 @@ if [ "$INSTALL" = true ]; then
     fi
 
     echo "==> Launching app..."
-    adb shell monkey -p com.klyx -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1
+    adb shell monkey -p com.axiom -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1
 fi
 
 echo "==> Done. APKs in $OUTPUT_DIR/"

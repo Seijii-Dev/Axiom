@@ -1,0 +1,207 @@
+package com.axiom.platform.service
+
+import android.annotation.SuppressLint
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
+import android.app.Service
+import android.content.Intent
+import android.os.Binder
+import android.os.IBinder
+import android.os.PowerManager
+import androidx.core.app.NotificationCompat
+import com.axiom.MainActivity
+import com.axiom.R
+import com.axiom.api.data.terminal.TerminalManager
+import com.axiom.api.data.terminal.TerminalSessionManager
+import com.axiom.api.event.terminal.NewSessionEvent
+import com.axiom.api.event.terminal.SessionTerminateEvent
+import com.axiom.core.event.subscribeIn
+import com.axiom.core.unsafe.GlobalApp
+import com.axiom.core.unsafe.UnsafeGlobalAccess
+import com.axiom.event.GlobalEventBus
+import com.axiom.i18n.getLocaleStrings
+import com.axiom.i18n.strings.Strings
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
+import java.lang.ref.WeakReference
+
+class TerminalService : Service() {
+
+    private val serviceJob = SupervisorJob()
+    private val serviceScope = CoroutineScope(Dispatchers.Main + serviceJob)
+
+    @OptIn(UnsafeGlobalAccess::class)
+    private val sessionManager: TerminalSessionManager by lazy {
+        GlobalApp.global<TerminalManager>().sessionManager
+    }
+
+    private var daemonRunning = false
+    private var wakeLock: PowerManager.WakeLock? = null
+
+    private val notificationManager by lazy {
+        getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+    }
+
+    private val strings: Strings
+        get() = getLocaleStrings(
+            androidx.compose.ui.text.intl.Locale(java.util.Locale.getDefault().toLanguageTag())
+        )
+
+    private val binder = LocalBinder(WeakReference(this))
+
+    class LocalBinder(private val service: WeakReference<TerminalService>) : Binder() {
+        fun getService(): TerminalService? = service.get()
+    }
+
+    override fun onBind(intent: Intent?): IBinder = binder
+
+    override fun onCreate() {
+        super.onCreate()
+
+        createNotificationChannel()
+        startForeground(NOTIFICATION_ID, createNotification())
+
+        if (!daemonRunning) {
+            daemonRunning = true
+        }
+
+        if (wakeLock == null) {
+            val powerManager = getSystemService(POWER_SERVICE) as PowerManager
+            wakeLock = powerManager.newWakeLock(
+                PowerManager.PARTIAL_WAKE_LOCK,
+                "TerminalService::WakeLock"
+            )
+        }
+
+        GlobalEventBus.subscribeIn<NewSessionEvent>(serviceScope) {
+            startForeground(NOTIFICATION_ID, createNotification())
+        }
+
+        GlobalEventBus.subscribeIn<SessionTerminateEvent>(serviceScope) { event ->
+            if (sessionManager.sessions.value.isEmpty()) {
+                daemonRunning = false
+                stopForeground(STOP_FOREGROUND_REMOVE)
+                stopSelf()
+            } else {
+                updateNotification()
+            }
+        }
+    }
+
+    fun onBound() {
+        if (!daemonRunning) {
+            daemonRunning = true
+        }
+    }
+
+    @SuppressLint("WakelockTimeout")
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        when (intent?.action) {
+            ACTION_EXIT -> {
+                serviceScope.launch {
+                    sessionManager.terminateAll()
+                    daemonRunning = false
+                    stopSelf()
+                }
+            }
+
+            ACTION_WAKE_LOCK -> {
+                wakeLock?.let { lock ->
+                    if (lock.isHeld) {
+                        lock.release()
+                    } else {
+                        lock.acquire()
+                    }
+                    updateNotification()
+                }
+            }
+        }
+        return START_STICKY
+    }
+
+    override fun onDestroy() {
+        daemonRunning = false
+        if (wakeLock?.isHeld == true) {
+            wakeLock?.release()
+        }
+
+        serviceJob.cancel()
+        super.onDestroy()
+    }
+
+    private fun createNotification(): Notification {
+        val tapIntent = Intent(this, MainActivity::class.java).apply {
+            action = ACTION_NOTIFICATION_TAP
+        }
+        val pendingTapIntent = PendingIntent.getActivity(
+            this, 0, tapIntent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+        )
+
+        val exitIntent = Intent(this, TerminalService::class.java).apply { action = ACTION_EXIT }
+        val exitPendingIntent = PendingIntent.getService(
+            this, 1, exitIntent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+        )
+
+        val wakeLockIntent =
+            Intent(this, TerminalService::class.java).apply { action = ACTION_WAKE_LOCK }
+        val wakeLockPendingIntent = PendingIntent.getService(
+            this,
+            2,
+            wakeLockIntent,
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+        )
+
+        val wakeLockTitle =
+            if (wakeLock?.isHeld == true) strings.releaseWakeLock else strings.acquireWakeLock
+
+        return NotificationCompat.Builder(this, CHANNEL_ID)
+            .setContentTitle(strings.terminal)
+            .setContentText(getNotificationContentText(wakeLock?.isHeld == true))
+            .setSmallIcon(R.drawable.terminal_2_24px)
+            .setContentIntent(pendingTapIntent)
+            .addAction(
+                NotificationCompat.Action.Builder(null, strings.exit, exitPendingIntent).build()
+            )
+            .addAction(
+                NotificationCompat.Action.Builder(null, wakeLockTitle, wakeLockPendingIntent)
+                    .build()
+            )
+            .setOngoing(true)
+            .build()
+    }
+
+    private fun createNotificationChannel() {
+        val channel = NotificationChannel(
+            CHANNEL_ID,
+            strings.terminalServiceChannel,
+            NotificationManager.IMPORTANCE_LOW
+        ).apply {
+            description = strings.terminalServiceChannelDesc
+        }
+        notificationManager.createNotificationChannel(channel)
+    }
+
+    private fun updateNotification() {
+        runCatching {
+            notificationManager.notify(NOTIFICATION_ID, createNotification())
+        }.onFailure { it.printStackTrace() }
+    }
+
+    private fun getNotificationContentText(isWakeLockHeld: Boolean): String {
+        val count = sessionManager.sessions.value.size
+        return strings.sessionsRunning(count) + if (isWakeLockHeld) strings.wakeLockHeldSuffix else ""
+    }
+
+    companion object {
+        private const val CHANNEL_ID = "terminal_service_channel"
+        private const val NOTIFICATION_ID = 1
+
+        private const val ACTION_EXIT = "com.axiom.terminal.ACTION_EXIT"
+        private const val ACTION_WAKE_LOCK = "com.axiom.terminal.ACTION_WAKE_LOCK"
+        const val ACTION_NOTIFICATION_TAP = "com.axiom.terminal.ACTION_NOTIFICATION_TAP"
+    }
+}

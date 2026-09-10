@@ -32,11 +32,11 @@
     native <methods>;
 }
 
--keep class com.klyx.native.** { *; }
+-keep class com.axiom.native.** { *; }
 
 -keep @androidx.annotation.Keep class * { *; }
 
--keep class com.klyx.** { *; }
+-keep class com.axiom.** { *; }
 
 -keepclassmembers enum * { *; }
 -keepattributes *Annotation*
